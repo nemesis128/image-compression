@@ -2,17 +2,19 @@ import { useState } from 'react'
 import './App.css'
 import { convertImageToWebP } from './utils/convertToWebP';
 import ImageDropzone from './components/ImageDropzone';
-import { Container, Row, Col, Form, Button, ProgressBar } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, ProgressBar, Alert } from 'react-bootstrap';
 
 function App() {
   const [files, setFiles] = useState([]);
   const [convertedImages, setConvertedImages] = useState([]);
   const [compressionQuality, setCompressionQuality] = useState(0.8);
   const [processing, setProcessing] = useState(false);
+  const [processCompleted, setProcessCompleted] = useState(false);
 
   const handleFilesAccepted = (acceptedFiles) => {
     setFiles(acceptedFiles);
     setConvertedImages([]); // Reiniciar imágenes convertidas
+    setProcessCompleted(false);
   };
 
   const handleConvert = async () => {
@@ -22,7 +24,6 @@ function App() {
         try {
           const blob = await convertImageToWebP(file, compressionQuality);
           return {
-            original: URL.createObjectURL(file),
             converted: URL.createObjectURL(blob),
           };
         } catch (error) {
@@ -33,6 +34,7 @@ function App() {
     );
     setConvertedImages(results.filter((result) => result !== null));
     setProcessing(false);
+    setProcessCompleted(true);
   };
 
   return (
@@ -52,7 +54,7 @@ function App() {
           <ImageDropzone onFilesAccepted={handleFilesAccepted} />
         </Col>
       </Row>
-      {files.length > 0 && (
+      {files.length > 0 && !processCompleted && (
         <Row className="my-4">
           <Col md={6}>
             <Form.Group controlId="compressionQuality">
@@ -85,27 +87,23 @@ function App() {
           </Col>
         </Row>
       )}
-      {convertedImages.length > 0 && (
+      {processCompleted && (
         <Row className="mt-4">
           <Col>
-            <h2>Previsualización: Antes y Después</h2>
+            <Alert variant="success">
+              El proceso de compresión ha concluido. Descarga tus imágenes comprimidas a continuación.
+            </Alert>
           </Col>
           {convertedImages.map((img, idx) => (
-            <Col key={idx} md={6} className="my-3">
-              <h5>Imagen {idx + 1}</h5>
-              <Row>
-                <Col>
-                  <p>Original</p>
-                  <img src={img.original} alt={`Original ${idx + 1}`} className="img-fluid" />
-                </Col>
-                <Col>
-                  <p>Convertida</p>
-                  <img src={img.converted} alt={`Convertida ${idx + 1}`} className="img-fluid" />
-                </Col>
-              </Row>
-              <a href={img.converted} download={`imagen-${idx + 1}.webp`} className="btn btn-success mt-2">
-                Descargar WebP
-              </a>
+            <Col key={idx} md={4} className="my-2">
+              <Button
+                variant="success"
+                href={img.converted}
+                download={`imagen-${idx + 1}.webp`}
+                block="true"
+              >
+                Descargar Imagen {idx + 1}
+              </Button>
             </Col>
           ))}
         </Row>
