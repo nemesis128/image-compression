@@ -1,8 +1,11 @@
-import { useState } from 'react'
-import './App.css'
+// src/App.jsx
+import { useState } from 'react';
+import './App.css';
 import { convertImageToWebP } from './utils/convertToWebP';
 import ImageDropzone from './components/ImageDropzone';
 import { Container, Row, Col, Form, Button, ProgressBar, Alert } from 'react-bootstrap';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 function App() {
   const [files, setFiles] = useState([]);
@@ -24,6 +27,7 @@ function App() {
         try {
           const blob = await convertImageToWebP(file, compressionQuality);
           return {
+            blob,
             converted: URL.createObjectURL(blob),
           };
         } catch (error) {
@@ -37,14 +41,22 @@ function App() {
     setProcessCompleted(true);
   };
 
+  const handleDownloadZip = async () => {
+    const zip = new JSZip();
+    convertedImages.forEach((img, idx) => {
+      zip.file(`imagen-${idx + 1}.webp`, img.blob);
+    });
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    saveAs(zipBlob, 'imagenes_comprimidas.zip');
+  };
+
   return (
-    <>
-      <Container className="my-5">
+    <Container className="my-5">
       <Row>
         <Col>
           <h1 className="mb-4">Conversor y Compresor a WebP</h1>
           <p>
-            Esta aplicación te permite subir imágenes, convertirlas a formato WebP y comprimir su tamaño.
+            Esta aplicación te permite subir imágenes y convertirlas a formato WebP con compresión.
             Selecciona el nivel de compresión deseado. Recuerda que una mayor compresión puede afectar la calidad.
           </p>
         </Col>
@@ -74,7 +86,7 @@ function App() {
             </Form.Group>
           </Col>
           <Col md={6} className="d-flex align-items-end">
-            <Button variant="primary" onClick={handleConvert} disabled={processing}>
+            <Button variant="primary" onClick={handleConvert} disabled={processing} className="mt-4">
               {processing ? 'Procesando...' : 'Convertir a WebP'}
             </Button>
           </Col>
@@ -91,26 +103,18 @@ function App() {
         <Row className="mt-4">
           <Col>
             <Alert variant="success">
-              El proceso de compresión ha concluido. Descarga tus imágenes comprimidas a continuación.
+              El proceso de compresión ha concluido. Descarga el ZIP con todas tus imágenes comprimidas.
             </Alert>
           </Col>
-          {convertedImages.map((img, idx) => (
-            <Col key={idx} md={4} className="my-2">
-              <Button
-                variant="success"
-                href={img.converted}
-                download={`imagen-${idx + 1}.webp`}
-                block="true"
-              >
-                Descargar Imagen {idx + 1}
-              </Button>
-            </Col>
-          ))}
+          <Col md={4}>
+            <Button variant="success" onClick={handleDownloadZip} block="true" className="mt-4">
+              Descargar ZIP
+            </Button>
+          </Col>
         </Row>
       )}
     </Container>
-    </>
-  )
+  );
 }
 
 export default App
