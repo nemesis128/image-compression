@@ -1,4 +1,3 @@
-// src/App.jsx
 import { useState } from 'react';
 import './App.css';
 import { convertImageToWebP } from './utils/convertToWebP';
@@ -29,6 +28,7 @@ function App() {
           return {
             blob,
             converted: URL.createObjectURL(blob),
+            name: file.name,
           };
         } catch (error) {
           console.error('Error al convertir:', error);
@@ -43,11 +43,17 @@ function App() {
 
   const handleDownloadZip = async () => {
     const zip = new JSZip();
-    convertedImages.forEach((img, idx) => {
-      zip.file(`imagen-${idx + 1}.webp`, img.blob);
+    convertedImages.forEach((img) => {
+      // Mantener el nombre original y cambiar la extensión a .webp
+      const fileNameWithoutExtension = img.name.replace(/\.[^/.]+$/, "");
+      zip.file(`${fileNameWithoutExtension}.webp`, img.blob);
     });
     const zipBlob = await zip.generateAsync({ type: 'blob' });
     saveAs(zipBlob, 'imagenes_comprimidas.zip');
+  };
+
+  const handleRestart = () => {
+    window.location.reload();
   };
 
   return (
@@ -86,7 +92,7 @@ function App() {
             </Form.Group>
           </Col>
           <Col md={6} className="d-flex align-items-end">
-            <Button variant="primary" onClick={handleConvert} disabled={processing} className="mt-4">
+            <Button variant="primary" onClick={handleConvert} disabled={processing}>
               {processing ? 'Procesando...' : 'Convertir a WebP'}
             </Button>
           </Col>
@@ -106,9 +112,14 @@ function App() {
               El proceso de compresión ha concluido. Descarga el ZIP con todas tus imágenes comprimidas.
             </Alert>
           </Col>
-          <Col md={4}>
-            <Button variant="success" onClick={handleDownloadZip} block="true" className="mt-4">
+          <Col md={4} className="mb-2">
+            <Button variant="success" onClick={handleDownloadZip}>
               Descargar ZIP
+            </Button>
+          </Col>
+          <Col md={4} className="mb-2">
+            <Button variant="secondary" onClick={handleRestart}>
+              Volver a empezar
             </Button>
           </Col>
         </Row>
@@ -117,4 +128,4 @@ function App() {
   );
 }
 
-export default App
+export default App;
