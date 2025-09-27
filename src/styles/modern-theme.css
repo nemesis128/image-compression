@@ -37,7 +37,7 @@ body {
 .hero-section {
   background: var(--primary-gradient);
   color: white;
-  padding: 4rem 0;
+  padding: 2rem 0;
   margin-bottom: 3rem;
   border-radius: 0 0 50px 50px;
   position: relative;

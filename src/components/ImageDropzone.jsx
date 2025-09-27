@@ -1,10 +1,12 @@
 import { useDropzone } from 'react-dropzone';
 import PropTypes from 'prop-types';
 import { Button } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
 
 const ImageDropzone = ({ onFilesAccepted }) => {
+  const { t } = useTranslation();
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     accept: 'image/*',
     maxSize: MAX_SIZE,
@@ -28,18 +30,18 @@ const ImageDropzone = ({ onFilesAccepted }) => {
       </div>
       {isDragActive ? (
         <>
-          <h4 className="mb-2" style={{ color: '#667eea' }}>Suéltalas aquí 🎉</h4>
-          <p className="text-muted mb-0">Preparando para procesar tus imágenes...</p>
+          <h4 className="mb-2" style={{ color: '#667eea' }}>{t('dropzoneActive')}</h4>
+          <p className="text-muted mb-0">{t('dropzoneActiveSubtitle')}</p>
         </>
       ) : (
         <>
-          <h4 className="mb-3" style={{ color: '#2d3748' }}>Arrastra tus imágenes aquí</h4>
+          <h4 className="mb-3" style={{ color: '#2d3748' }}>{t('dropzoneTitle')}</h4>
           <p className="text-muted mb-4">
-            O haz clic para seleccionar hasta <strong>10 imágenes</strong><br/>
-            <small>Formatos soportados: JPG, PNG, GIF, WEBP (máx. 5MB c/u)</small>
+            {t('dropzoneSubtitle', { count: 10 })}<br/>
+            <small>{t('dropzoneFormats')}</small>
           </p>
           <Button className="btn-modern" onClick={open}>
-            🖼️ Seleccionar Imágenes
+            {t('selectImagesBtn')}
           </Button>
         </>
       )}

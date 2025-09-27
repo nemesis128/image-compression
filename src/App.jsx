@@ -4,11 +4,14 @@ import { convertImageToWebP } from './utils/convertToWebP';
 import ImageDropzone from './components/ImageDropzone';
 import ImageGrid from './components/ImageGrid';
 import CompressionControls from './components/CompressionControls';
+import LanguageSwitcher from './components/LanguageSwitcher';
 import { Container, Row, Col } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
 function App() {
+  const { t } = useTranslation();
   const [files, setFiles] = useState([]);
   const [convertedImages, setConvertedImages] = useState([]);
   const [compressionQuality, setCompressionQuality] = useState(0.8);
@@ -100,7 +103,8 @@ function App() {
       zip.file(`${fileNameWithoutExtension}.webp`, img.blob);
     });
     const zipBlob = await zip.generateAsync({ type: 'blob' });
-    saveAs(zipBlob, 'imagenes_comprimidas_webp.zip');
+    const fileName = t('appTitle').toLowerCase().replace(/\s+/g, '_') + '_compressed.zip';
+    saveAs(zipBlob, fileName);
   };
 
   const handleRestart = () => {
@@ -124,10 +128,12 @@ function App() {
       <div className="hero-section">
         <Container>
           <div className="hero-content">
-            <h1 className="hero-title">WebP Converter</h1>
+            <div className="d-flex justify-content-end mb-3">
+              <LanguageSwitcher />
+            </div>
+            <h1 className="hero-title">{t('appTitle')}</h1>
             <p className="hero-subtitle">
-              🚀 Convierte y optimiza tus imágenes al formato WebP de nueva generación.
-              Reduce hasta 80% el tamaño sin perder calidad.
+              {t('appSubtitle')}
             </p>
           </div>
         </Container>

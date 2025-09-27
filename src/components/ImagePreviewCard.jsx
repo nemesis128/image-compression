@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card, Badge, ProgressBar, Button } from 'react-bootstrap';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 const ImagePreviewCard = ({
   file,
@@ -11,6 +12,7 @@ const ImagePreviewCard = ({
   isCompleted,
   onRemove
 }) => {
+  const { t } = useTranslation();
   const [preview, setPreview] = useState(null);
   const [originalSize, setOriginalSize] = useState(0);
   const [estimatedSize, setEstimatedSize] = useState(0);
@@ -140,7 +142,7 @@ const ImagePreviewCard = ({
           borderRadius: '8px'
         }}>
           <small className="text-muted">
-            📏 Original: <strong style={{ color: '#667eea' }}>{formatFileSize(originalSize)}</strong>
+            {t('original', { size: formatFileSize(originalSize) })}
           </small>
         </div>
 
@@ -150,7 +152,7 @@ const ImagePreviewCard = ({
             borderRadius: '8px'
           }}>
             <small className="text-muted animate-pulse">
-              ⏳ Estimando tamaño...
+              {t('estimating')}
             </small>
           </div>
         ) : estimatedSize > 0 ? (
@@ -159,10 +161,10 @@ const ImagePreviewCard = ({
             borderRadius: '8px'
           }}>
             <small className="d-block">
-              🎯 WebP: <strong style={{ color: '#48bb78' }}>{formatFileSize(estimatedSize)}</strong>
+              {t('webpEstimate', { size: formatFileSize(estimatedSize) })}
             </small>
             <small className="text-success d-block mt-1">
-              💰 Ahorro: <strong>~{getCompressionRatio()}%</strong>
+              {t('savingsEstimate', { percent: getCompressionRatio() })}
             </small>
           </div>
         ) : null}
@@ -170,7 +172,7 @@ const ImagePreviewCard = ({
         {isProcessing && (
           <div className="mt-auto">
             <small className="text-muted mb-2 d-block">
-              📷 Procesando imagen...
+              {t('processing')}
             </small>
             <ProgressBar
               now={processingProgress}
@@ -189,7 +191,7 @@ const ImagePreviewCard = ({
               fontSize: '0.9rem',
               fontWeight: 'bold'
             }}>
-              ✓ ¡Conversión completada!
+              {t('conversionCompleted')}
             </div>
           </div>
         )}

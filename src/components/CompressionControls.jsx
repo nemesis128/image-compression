@@ -1,5 +1,6 @@
 import { Row, Col, Form, Button, Card, Alert } from 'react-bootstrap';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 const CompressionControls = ({
   compressionQuality,
@@ -14,6 +15,8 @@ const CompressionControls = ({
   isCompleted,
   canStartCompression
 }) => {
+  const { t } = useTranslation();
+
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 B';
     const k = 1024;
@@ -30,9 +33,9 @@ const CompressionControls = ({
   };
 
   const getQualityLabel = (quality) => {
-    if (quality >= 0.8) return { text: 'Alta calidad', variant: 'success' };
-    if (quality >= 0.6) return { text: 'Calidad media', variant: 'warning' };
-    return { text: 'Alta compresión', variant: 'danger' };
+    if (quality >= 0.8) return { text: t('qualityHigh'), variant: 'success' };
+    if (quality >= 0.6) return { text: t('qualityMedium'), variant: 'warning' };
+    return { text: t('qualityLow'), variant: 'danger' };
   };
 
   const qualityLabel = getQualityLabel(compressionQuality);
@@ -41,7 +44,7 @@ const CompressionControls = ({
     <Card className="modern-card mb-5">
       <Card.Header>
         <h5 className="mb-0">
-          ⚙️ Configuración de Compresión
+          {t('compressionConfig')}
         </h5>
       </Card.Header>
       <Card.Body>
@@ -51,7 +54,7 @@ const CompressionControls = ({
               <Form.Group controlId="compressionQuality">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <Form.Label className="mb-0 fw-bold">
-                    🎯 Nivel de Compresión
+                    {t('compressionLevel')}
                   </Form.Label>
                   <span className={`badge bg-${qualityLabel.variant} px-3 py-2`}>
                     {qualityLabel.text}
@@ -67,12 +70,12 @@ const CompressionControls = ({
                   className="mb-3"
                 />
                 <div className="d-flex justify-content-between mb-2">
-                  <small className="text-muted">0.1 (Máxima compresión)</small>
-                  <small className="text-muted">1.0 (Máxima calidad)</small>
+                  <small className="text-muted">{t('maxCompression')}</small>
+                  <small className="text-muted">{t('maxQuality')}</small>
                 </div>
                 <div className="text-center">
                   <span className="fs-5 fw-bold" style={{ color: '#667eea' }}>
-                    Calidad: {Math.round(compressionQuality * 100)}%
+                    {t('quality', { percent: Math.round(compressionQuality * 100) })}
                   </span>
                 </div>
               </Form.Group>
@@ -86,13 +89,13 @@ const CompressionControls = ({
                 <Row className="mb-4 g-3">
                   <Col md={4}>
                     <div className="stats-card original">
-                      <div className="fs-6 text-muted mb-1">📊 Original</div>
+                      <div className="fs-6 text-muted mb-1">{t('statsOriginal')}</div>
                       <div className="fw-bold">{formatFileSize(totalOriginalSize)}</div>
                     </div>
                   </Col>
                   <Col md={4}>
                     <div className="stats-card compressed">
-                      <div className="fs-6 text-muted mb-1">📋 WebP</div>
+                      <div className="fs-6 text-muted mb-1">{t('statsWebp')}</div>
                       <div className="fw-bold">
                         {totalEstimatedSize > 0 ? formatFileSize(totalEstimatedSize) : '--'}
                       </div>
@@ -100,7 +103,7 @@ const CompressionControls = ({
                   </Col>
                   <Col md={4}>
                     <div className="stats-card savings">
-                      <div className="fs-6 text-muted mb-1">💰 Ahorro</div>
+                      <div className="fs-6 text-muted mb-1">{t('statsSavings')}</div>
                       <div className="fw-bold text-success">
                         {getTotalSavings() > 0 ? `~${getTotalSavings()}%` : '--'}
                       </div>
@@ -111,7 +114,7 @@ const CompressionControls = ({
                 <div className="text-center">
                   <div className="mb-3">
                     <span className="badge" style={{ background: 'var(--primary-gradient)', fontSize: '0.9rem', padding: '0.5rem 1rem' }}>
-                      {filesCount} imagen{filesCount > 1 ? 'es' : ''} seleccionada{filesCount > 1 ? 's' : ''}
+                      {t('imagesSelected', { count: filesCount })}
                     </span>
                   </div>
 
@@ -122,17 +125,17 @@ const CompressionControls = ({
                         onClick={onStartCompression}
                         disabled={!canStartCompression}
                       >
-                        🚀 Iniciar Compresión
+                        {t('startCompression')}
                       </Button>
                     )}
 
                     {isCompleted && (
                       <>
                         <Button className="btn-success-modern" onClick={onDownloadZip}>
-                          📦 Descargar ZIP
+                          {t('downloadZip')}
                         </Button>
                         <Button className="btn-outline-modern" onClick={onReset}>
-                          🔄 Nuevo Proceso
+                          {t('newProcess')}
                         </Button>
                       </>
                     )}
@@ -153,7 +156,7 @@ const CompressionControls = ({
               <div className="spinner-border spinner-border-sm me-3" role="status" style={{ color: '#667eea' }}>
                 <span className="visually-hidden">Procesando...</span>
               </div>
-              <span className="fw-bold">Comprimiendo imágenes... 🎨 Por favor espera.</span>
+              <span className="fw-bold">{t('processingImages')}</span>
             </div>
           </Alert>
         )}
@@ -166,7 +169,7 @@ const CompressionControls = ({
           }}>
             <div className="text-center">
               <span className="fs-5">🎉</span>
-              <strong className="ms-2">¡Proceso completado! Todas las imágenes han sido convertidas a WebP.</strong>
+              <strong className="ms-2">{t('processCompleted')}</strong>
             </div>
           </Alert>
         )}
