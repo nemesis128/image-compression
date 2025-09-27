@@ -1,0 +1,84 @@
+name: 🚀 Deploy WebP Converter to cPanel via FTP
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🧰 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Run linter
+        run: npm run lint
+
+      - name: 🏗️ Build React app
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: 📊 Build summary
+        run: |
+          echo "📦 Build completed successfully!"
+          echo "📁 Build directory contents:"
+          ls -la dist/
+          echo "📏 Build size:"
+          du -sh dist/
+
+      - name: 🚀 Deploy to Production via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: dist/
+          server-dir: /
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.env
+            **/.env.*
+            **/package*.json
+            **/README.md
+            **/CLAUDE.md
+            **/*.log
+            **/.DS_Store
+            **/Thumbs.db
+            **/desktop.ini
+            **/.vscode/**
+            **/.idea/**
+            **/coverage/**
+            **/tests/**
+            **/test/**
+            **/*.test.*
+            **/*.spec.*
+            **/src/**
+            **/public/**
+            **/vite.config.*
+            **/eslint.config.*
+            **/*.config.js
+            **/*.config.ts
+          dry-run: false
+
+      - name: 🎉 Deployment completed
+        run: |
+          echo "✅ Deployment completed successfully!"
+          echo "🌐 Your WebP Converter is now live!"
+          echo "📅 Deployed at: $(date)"
