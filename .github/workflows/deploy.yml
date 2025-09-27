@@ -3,7 +3,7 @@ name: 🚀 Deploy WebP Converter to cPanel via FTP
 on:
   push:
     branches:
-      - main
+      - release-prod
 
 permissions:
   contents: read
