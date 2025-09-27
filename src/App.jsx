@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import './App.css';
 import { convertImageToWebP } from './utils/convertToWebP';
 import ImageDropzone from './components/ImageDropzone';
-import { Container, Row, Col, Form, Button, ProgressBar, Alert } from 'react-bootstrap';
+import ImageGrid from './components/ImageGrid';
+import CompressionControls from './components/CompressionControls';
+import { Container, Row, Col } from 'react-bootstrap';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
@@ -12,31 +14,81 @@ function App() {
   const [compressionQuality, setCompressionQuality] = useState(0.8);
   const [processing, setProcessing] = useState(false);
   const [processCompleted, setProcessCompleted] = useState(false);
+  const [processingStatus, setProcessingStatus] = useState({});
+  const [sizeEstimates, setSizeEstimates] = useState({});
 
-  const handleFilesAccepted = (acceptedFiles) => {
+  const handleFilesAccepted = useCallback((acceptedFiles) => {
     setFiles(acceptedFiles);
-    setConvertedImages([]); // Reiniciar imágenes convertidas
+    setConvertedImages([]);
     setProcessCompleted(false);
-  };
+    setProcessingStatus({});
+    setSizeEstimates({});
+  }, []);
+
+  const handleRemoveFile = useCallback((fileName) => {
+    setFiles(prev => prev.filter(file => file.name !== fileName));
+    setSizeEstimates(prev => {
+      const newEstimates = { ...prev };
+      delete newEstimates[fileName];
+      return newEstimates;
+    });
+  }, []);
+
+  const handleEstimateReady = useCallback((fileName, estimatedSize) => {
+    setSizeEstimates(prev => ({
+      ...prev,
+      [fileName]: estimatedSize
+    }));
+  }, []);
 
   const handleConvert = async () => {
     setProcessing(true);
-    const results = await Promise.all(
-      files.map(async (file) => {
-        try {
-          const blob = await convertImageToWebP(file, compressionQuality);
-          return {
-            blob,
-            converted: URL.createObjectURL(blob),
-            name: file.name,
-          };
-        } catch (error) {
-          console.error('Error al convertir:', error);
-          return null;
-        }
-      })
-    );
-    setConvertedImages(results.filter((result) => result !== null));
+    const results = [];
+
+    // Procesar imágenes una por una para mostrar progreso individual
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      // Actualizar estado: iniciando procesamiento
+      setProcessingStatus(prev => ({
+        ...prev,
+        [file.name]: { isProcessing: true, progress: 0, isCompleted: false }
+      }));
+
+      try {
+        // Simular progreso durante la conversión
+        setProcessingStatus(prev => ({
+          ...prev,
+          [file.name]: { ...prev[file.name], progress: 50 }
+        }));
+
+        const blob = await convertImageToWebP(file, compressionQuality);
+
+        // Completar progreso
+        setProcessingStatus(prev => ({
+          ...prev,
+          [file.name]: { isProcessing: false, progress: 100, isCompleted: true }
+        }));
+
+        results.push({
+          blob,
+          converted: URL.createObjectURL(blob),
+          name: file.name,
+        });
+
+        // Pequeña pausa para mejor UX
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+      } catch (error) {
+        console.error('Error al convertir:', error);
+        setProcessingStatus(prev => ({
+          ...prev,
+          [file.name]: { isProcessing: false, progress: 0, isCompleted: false }
+        }));
+      }
+    }
+
+    setConvertedImages(results);
     setProcessing(false);
     setProcessCompleted(true);
   };
@@ -44,87 +96,84 @@ function App() {
   const handleDownloadZip = async () => {
     const zip = new JSZip();
     convertedImages.forEach((img) => {
-      // Mantener el nombre original y cambiar la extensión a .webp
       const fileNameWithoutExtension = img.name.replace(/\.[^/.]+$/, "");
       zip.file(`${fileNameWithoutExtension}.webp`, img.blob);
     });
     const zipBlob = await zip.generateAsync({ type: 'blob' });
-    saveAs(zipBlob, 'imagenes_comprimidas.zip');
+    saveAs(zipBlob, 'imagenes_comprimidas_webp.zip');
   };
 
   const handleRestart = () => {
-    window.location.reload();
+    setFiles([]);
+    setConvertedImages([]);
+    setProcessCompleted(false);
+    setProcessing(false);
+    setProcessingStatus({});
+    setSizeEstimates({});
   };
 
+  // Calcular totales
+  const totalOriginalSize = files.reduce((sum, file) => sum + file.size, 0);
+  const totalEstimatedSize = Object.values(sizeEstimates).reduce((sum, size) => sum + size, 0);
+  const canStartCompression = files.length > 0 && !processing;
+  const hasEstimates = Object.keys(sizeEstimates).length === files.length && files.length > 0;
+
   return (
-    <Container className="my-5">
-      <Row>
-        <Col>
-          <h1 className="mb-4">Conversor y Compresor a WebP</h1>
-          <p>
-            Esta aplicación te permite subir imágenes y convertirlas a formato WebP con compresión.
-            Selecciona el nivel de compresión deseado. Recuerda que una mayor compresión puede afectar la calidad.
-          </p>
-        </Col>
-      </Row>
-      <Row className="my-4">
-        <Col>
-          <ImageDropzone onFilesAccepted={handleFilesAccepted} />
-        </Col>
-      </Row>
-      {files.length > 0 && !processCompleted && (
-        <Row className="my-4">
-          <Col md={6}>
-            <Form.Group controlId="compressionQuality">
-              <Form.Label>
-                Nivel de compresión (calidad WebP): {compressionQuality}
-              </Form.Label>
-              <Form.Range
-                min={0.1}
-                max={1}
-                step={0.1}
-                value={compressionQuality}
-                onChange={(e) => setCompressionQuality(parseFloat(e.target.value))}
-              />
-              <small className="text-muted">
-                A menor calidad, mayor compresión y mayor riesgo de pérdida en la calidad.
-              </small>
-            </Form.Group>
-          </Col>
-          <Col md={6} className="d-flex align-items-end">
-            <Button variant="primary" onClick={handleConvert} disabled={processing}>
-              {processing ? 'Procesando...' : 'Convertir a WebP'}
-            </Button>
-          </Col>
-        </Row>
-      )}
-      {processing && (
-        <Row className="my-3">
+    <>
+      {/* Hero Section */}
+      <div className="hero-section">
+        <Container>
+          <div className="hero-content">
+            <h1 className="hero-title">WebP Converter</h1>
+            <p className="hero-subtitle">
+              🚀 Convierte y optimiza tus imágenes al formato WebP de nueva generación.
+              Reduce hasta 80% el tamaño sin perder calidad.
+            </p>
+          </div>
+        </Container>
+      </div>
+
+      <Container className="py-4">
+
+        <Row className="mb-5">
           <Col>
-            <ProgressBar animated now={100} label="Procesando..." />
+            <div className="animate-slide-up">
+              <ImageDropzone onFilesAccepted={handleFilesAccepted} />
+            </div>
           </Col>
         </Row>
-      )}
-      {processCompleted && (
-        <Row className="mt-4">
-          <Col>
-            <Alert variant="success">
-              El proceso de compresión ha concluido. Descarga el ZIP con todas tus imágenes comprimidas.
-            </Alert>
-          </Col>
-          <Col md={4} className="mb-2">
-            <Button variant="success" onClick={handleDownloadZip}>
-              Descargar ZIP
-            </Button>
-          </Col>
-          <Col md={4} className="mb-2">
-            <Button variant="secondary" onClick={handleRestart}>
-              Volver a empezar
-            </Button>
-          </Col>
-        </Row>
-      )}
-    </Container>
+
+        {files.length > 0 && (
+          <div className="animate-slide-up">
+            <CompressionControls
+              compressionQuality={compressionQuality}
+              onQualityChange={setCompressionQuality}
+              onStartCompression={handleConvert}
+              onDownloadZip={handleDownloadZip}
+              onReset={handleRestart}
+              filesCount={files.length}
+              totalOriginalSize={totalOriginalSize}
+              totalEstimatedSize={hasEstimates ? totalEstimatedSize : 0}
+              isProcessing={processing}
+              isCompleted={processCompleted}
+              canStartCompression={canStartCompression}
+            />
+
+            <Row className="image-grid">
+              <Col>
+                <ImageGrid
+                  files={files}
+                  compressionQuality={compressionQuality}
+                  processingStatus={processingStatus}
+                  onRemoveFile={handleRemoveFile}
+                  onEstimateReady={handleEstimateReady}
+                />
+              </Col>
+            </Row>
+          </div>
+        )}
+      </Container>
+    </>
   );
 }
 

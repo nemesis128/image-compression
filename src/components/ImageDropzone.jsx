@@ -18,17 +18,28 @@ const ImageDropzone = ({ onFilesAccepted }) => {
   });
 
   return (
-    <div {...getRootProps()} className="p-4 border border-primary rounded text-center">
+    <div
+      {...getRootProps()}
+      className={`modern-dropzone ${isDragActive ? 'drag-active' : ''}`}
+    >
       <input {...getInputProps()} />
+      <div className="dropzone-icon">
+        📷
+      </div>
       {isDragActive ? (
-        <p>Suelta las imágenes aquí...</p>
+        <>
+          <h4 className="mb-2" style={{ color: '#667eea' }}>Suéltalas aquí 🎉</h4>
+          <p className="text-muted mb-0">Preparando para procesar tus imágenes...</p>
+        </>
       ) : (
         <>
-          <p>
-            Arrastra y suelta hasta 10 imágenes (máx. 5 MB cada una)
+          <h4 className="mb-3" style={{ color: '#2d3748' }}>Arrastra tus imágenes aquí</h4>
+          <p className="text-muted mb-4">
+            O haz clic para seleccionar hasta <strong>10 imágenes</strong><br/>
+            <small>Formatos soportados: JPG, PNG, GIF, WEBP (máx. 5MB c/u)</small>
           </p>
-          <Button variant="outline-primary" onClick={open}>
-            Seleccionar imágenes
+          <Button className="btn-modern" onClick={open}>
+            🖼️ Seleccionar Imágenes
           </Button>
         </>
       )}
