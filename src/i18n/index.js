@@ -13,7 +13,7 @@ const resources = {
       // Dropzone
       dropzoneTitle: "Drag your images here",
       dropzoneSubtitle: "Or click to select up to {{count}} images",
-      dropzoneFormats: "Supported formats: JPG, PNG, GIF, WEBP (max. 5MB each)",
+      dropzoneFormats: "Supported formats: JPG, PNG, GIF, WEBP (max. 50MB each)",
       dropzoneActive: "Drop them here 🎉",
       dropzoneActiveSubtitle: "Preparing to process your images...",
       selectImagesBtn: "🖼️ Select Images",
@@ -69,7 +69,7 @@ const resources = {
       // Dropzone
       dropzoneTitle: "Arrastra tus imágenes aquí",
       dropzoneSubtitle: "O haz clic para seleccionar hasta {{count}} imágenes",
-      dropzoneFormats: "Formatos soportados: JPG, PNG, GIF, WEBP (máx. 5MB c/u)",
+      dropzoneFormats: "Formatos soportados: JPG, PNG, GIF, WEBP (máx. 50MB c/u)",
       dropzoneActive: "Suéltalas aquí 🎉",
       dropzoneActiveSubtitle: "Preparando para procesar tus imágenes...",
       selectImagesBtn: "🖼️ Seleccionar Imágenes",
