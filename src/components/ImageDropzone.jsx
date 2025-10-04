@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Button } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 
-const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_SIZE = 50 * 1024 * 1024; // 50 MB
 
 const ImageDropzone = ({ onFilesAccepted }) => {
   const { t } = useTranslation();
