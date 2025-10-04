@@ -197,7 +197,7 @@ npm run lint
 - **Drag & Drop**: Simply drag images onto the dropzone
 - **Click to Select**: Use the button to browse files
 - **Batch Upload**: Select up to 10 images at once
-- **Format Support**: JPEG, PNG, GIF, WebP (max 5MB each)
+- **Format Support**: JPEG, PNG, GIF, WebP (max 50MB each)
 
 ### 2️⃣ **Configure Compression**
 - **Quality Slider**: Adjust compression level (10%-100%)
